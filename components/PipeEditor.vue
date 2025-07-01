@@ -198,7 +198,6 @@ const onCancel = () => {
         >
           <div class="flex items-center space-x-2">
             <GumnutData name="isJacketed" v-slot="{ dirty, model }">
-              {{ model.value }}
               <Checkbox
                 id="isJacketed"
                 :model-value="model.value === 'true'"
@@ -210,7 +209,6 @@ const onCancel = () => {
           </div>
           <div class="flex items-center space-x-2">
             <GumnutData name="isFlanged" v-slot="{ dirty, model }">
-              {{ model.value }}
               <Checkbox
                 id="isFlanged"
                 :model-value="model.value === 'true'"
