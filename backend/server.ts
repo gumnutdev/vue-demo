@@ -1,11 +1,11 @@
 /**
  * @fileoverview A simple, single-file Node.js HTTP server in TypeScript
- * that manages a list of "Widgets" and proxies all other requests
+ * that manages a list of engineering "Pipes" and proxies all other requests
  * to a frontend development server. It uses ES module syntax and a
  * JSON file for data persistence.
  *
  * @author Gemini
- * @version 1.1.0
+ * @version 1.4.0
  *
  * To run this server:
  * 1. Save this file as `server.ts`.
@@ -13,26 +13,23 @@
  * 3. In your terminal, in the same directory, run `npm init -y`.
  * 4. Set the module type in `package.json` by adding the line: "type": "module"
  * 5. Install dependencies: `npm install typescript ts-node @types/node --save-dev`
- * 6. Create an empty file named `database.json` or add some initial data like:
- * [
- * { "id": 1, "name": "Initial Widget", "color": "blue" }
- * ]
+ * 6. Create an empty `database.json` file.
  * 7. Run this server: `npx ts-node server.ts`
  * 8. In a separate terminal, run your frontend dev server (e.g., Vite) on port 5173.
  *
  * The server will start on http://localhost:3000.
  *
  * API Endpoints:
- * - GET /widgets
- * - Fetches all widgets.
- * - curl http://localhost:3000/widgets
+ * - GET /pipes
+ * - Fetches all pipes.
+ * - curl http://localhost:3000/pipes
  *
- * - POST /widgets
- * - Creates a new widget or updates an existing one.
- * - curl -X POST -H "Content-Type: application/json" -d '{"name":"New","color":"red"}' http://localhost:3000/widgets
+ * - POST /pipes
+ * - Creates a new pipe or updates an existing one. All fields are optional.
+ * - Example Create:
+ * curl -X POST -H "Content-Type: application/json" -d '{"material": "Stainless Steel", "description": "Initial entry for new pipeline section."}' http://localhost:3000/pipes
  *
- * All other requests (e.g., to `/`, `/about`, static assets) will be proxied
- * to http://localhost:5173.
+ * All other requests will be proxied to http://localhost:5173.
  */
 
 // Node.js built-in modules
@@ -43,10 +40,21 @@ import { fileURLToPath } from 'url';
 
 // --- TYPE DEFINITIONS ---
 
-interface Widget {
+interface Pipe {
   id: number;
-  name: string;
-  color: string;
+  description?: string; // Free text description
+  diameter?: number; // in millimeters
+  material?: string; // e.g., 'Carbon Steel', 'PVC', 'Copper'
+  length?: number; // in meters
+  pressureRating?: number; // in PSI (Pounds per Square Inch)
+  schedule?: string; // e.g., 'SCH 40', 'SCH 80'
+  materialGrade?: string; // e.g., 'A106-B', '316L'
+  tensileStrength?: number; // in MPa (Megapascals)
+  yieldStrength?: number; // in MPa (Megapascals)
+  hardness?: string; // e.g., '150 HB' (Brinell Hardness)
+  ringCrushStrength?: number; // in kN/m (kilonewtons per meter)
+  coating?: string; // e.g., 'FBE' (Fusion Bonded Epoxy), 'Galvanized', 'None'
+  insulationThickness?: number; // in millimeters
 }
 
 // --- CONFIGURATION & SETUP ---
@@ -59,19 +67,19 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DB_PATH = path.join(__dirname, 'database.json');
 
-// In-memory cache for our widget data.
-let widgetCache: Widget[] = [];
+// In-memory cache for our pipe data.
+let pipeCache: Pipe[] = [];
 
 // --- DATABASE HELPER FUNCTIONS ---
 
 /**
  * Reads the content of the database.json file and parses it.
- * @returns A promise that resolves to an array of Widgets.
+ * @returns A promise that resolves to an array of Pipes.
  */
-async function loadDatabase(): Promise<Widget[]> {
+async function loadDatabase(): Promise<Pipe[]> {
   try {
     const data = await fs.readFile(DB_PATH, 'utf-8');
-    return data ? (JSON.parse(data) as Widget[]) : [];
+    return data ? (JSON.parse(data) as Pipe[]) : [];
   } catch (error: any) {
     if (error.code === 'ENOENT') {
       console.log('database.json not found. It will be created on the first write.');
@@ -83,10 +91,10 @@ async function loadDatabase(): Promise<Widget[]> {
 }
 
 /**
- * Writes the given array of widgets to the database.json file.
- * @param data The array of Widgets to save.
+ * Writes the given array of pipes to the database.json file.
+ * @param data The array of Pipes to save.
  */
-async function saveDatabase(data: Widget[]): Promise<void> {
+async function saveDatabase(data: Pipe[]): Promise<void> {
   try {
     await fs.writeFile(DB_PATH, JSON.stringify(data, null, 2), 'utf-8');
   } catch (error) {
@@ -135,9 +143,7 @@ function proxyRequest(req: http.IncomingMessage, res: http.ServerResponse) {
   };
 
   const proxyReq = http.request(options, (proxyRes) => {
-    // Write the headers from the proxy response to the original response
     res.writeHead(proxyRes.statusCode || 500, proxyRes.headers);
-    // Pipe the body of the proxy response to the original response
     proxyRes.pipe(res, { end: true });
   });
 
@@ -147,7 +153,6 @@ function proxyRequest(req: http.IncomingMessage, res: http.ServerResponse) {
     res.end(JSON.stringify({ message: 'Bad Gateway - Is the frontend server running?' }));
   });
 
-  // Pipe the body of the original request to the proxy request
   req.pipe(proxyReq, { end: true });
 }
 
@@ -155,52 +160,52 @@ function proxyRequest(req: http.IncomingMessage, res: http.ServerResponse) {
 
 const server = http.createServer(async (req, res) => {
   const { method, url } = req;
-  // We only need the pathname for routing our API endpoints.
-  // The full URL (including query params) will be passed to the proxy.
   const pathname = new URL(url || '', `http://${req.headers.host}`).pathname;
 
   // --- API ROUTES ---
-  if (pathname.startsWith('/widgets')) {
+  if (pathname.startsWith('/pipes')) {
     try {
-      // --- ROUTE: GET /widgets ---
-      if (pathname === '/widgets' && method === 'GET') {
+      // --- ROUTE: GET /pipes ---
+      if (pathname === '/pipes' && method === 'GET') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(widgetCache));
+        res.end(JSON.stringify(pipeCache));
         return;
       }
 
-      // --- ROUTE: POST /widgets ---
-      if (pathname === '/widgets' && method === 'POST') {
-        const body = (await parseRequestBody(req)) as Partial<Widget>;
+      // --- ROUTE: POST /pipes ---
+      if (pathname === '/pipes' && method === 'POST') {
+        const body = (await parseRequestBody(req)) as Partial<Pipe>;
 
-        if (!body.name || !body.color) {
-          res.writeHead(400, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ message: 'Bad Request: "name" and "color" are required.' }));
-          return;
-        }
-
-        // UPDATE existing widget
+        // UPDATE existing pipe
         if (body.id) {
-          const widgetIndex = widgetCache.findIndex((w) => w.id === body.id);
-          if (widgetIndex > -1) {
-            const updatedWidget = { ...widgetCache[widgetIndex], ...body };
-            widgetCache[widgetIndex] = updatedWidget;
-            await saveDatabase(widgetCache);
+          const pipeIndex = pipeCache.findIndex((p) => p.id === body.id);
+          if (pipeIndex > -1) {
+            // Merge existing data with new data
+            const updatedPipe = { ...pipeCache[pipeIndex], ...body };
+            pipeCache[pipeIndex] = updatedPipe;
+            await saveDatabase(pipeCache);
             res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify(updatedWidget));
+            res.end(JSON.stringify(updatedPipe));
           } else {
             res.writeHead(404, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ message: `Widget with id ${body.id} not found.` }));
+            res.end(JSON.stringify({ message: `Pipe with id ${body.id} not found.` }));
           }
         }
-        // CREATE new widget
+        // CREATE new pipe
         else {
-          const newId = widgetCache.length > 0 ? Math.max(...widgetCache.map((w) => w.id)) + 1 : 1;
-          const newWidget: Widget = { id: newId, name: body.name, color: body.color };
-          widgetCache.push(newWidget);
-          await saveDatabase(widgetCache);
+          const newId = pipeCache.length > 0 ? Math.max(...pipeCache.map((p) => p.id)) + 1 : 1;
+
+          // Create a new pipe object with the provided body and a new ID.
+          // All fields are optional, so we don't need to check for them or provide defaults.
+          const newPipe: Pipe = {
+            id: newId,
+            ...body,
+          };
+
+          pipeCache.push(newPipe);
+          await saveDatabase(pipeCache);
           res.writeHead(201, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify(newWidget));
+          res.end(JSON.stringify(newPipe));
         }
         return;
       }
@@ -213,15 +218,14 @@ const server = http.createServer(async (req, res) => {
   }
 
   // --- PROXY all other requests ---
-  // If the request was not for our API, proxy it.
   proxyRequest(req, res);
 });
 
 // --- START THE SERVER ---
 
 async function startServer() {
-  widgetCache = await loadDatabase();
-  console.log(`Loaded ${widgetCache.length} widgets from the database.`);
+  pipeCache = await loadDatabase();
+  console.log(`Loaded ${pipeCache.length} pipes from the database.`);
 
   server.listen(PORT, () => {
     console.log(`🚀 API server listening on http://localhost:${PORT}`);

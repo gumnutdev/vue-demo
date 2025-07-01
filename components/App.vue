@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { buildTestToken, useGumnutDoc } from '@gumnutdev/vue';
 import { GumnutText } from '@gumnutdev/vue';
+import PipeEditorController from './PipeEditorController.vue';
 
 useGumnutDoc({
   docId: 'hello',
@@ -11,8 +12,6 @@ useGumnutDoc({
 </script>
 
 <template>
-  Zing
-  <GumnutText name="whatever"></GumnutText>
-
-  Hello World
+  App here
+  <PipeEditorController />
 </template>
