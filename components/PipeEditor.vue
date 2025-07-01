@@ -11,7 +11,9 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
+import { Slider } from '@/components/ui/slider';
 import type { Pipe } from '../backend/types.d.ts';
 
 // Define props
@@ -27,20 +29,17 @@ const emit = defineEmits<{
 
 // Local state for the form
 const editablePipe = ref<Pipe>({ id: 0 });
+const corrosionLevel = ref([0]); // Slider model needs to be an array
 
 // Watch for prop changes to update local state
 watch(
   () => props.pipe,
   (newPipe) => {
     editablePipe.value = newPipe ? { ...newPipe } : { id: 0 };
+    corrosionLevel.value[0] = editablePipe.value.corrosionLevel ?? 0;
   },
   { immediate: true, deep: true },
 );
-
-// Computed property for the form title
-const formTitle = computed(() => {
-  return props.pipe && props.pipe.id ? 'Edit Pipe Specification' : 'Create New Pipe';
-});
 
 // Form fields definition for easy rendering
 const formFields: { id: keyof Pipe; label: string; type: string; placeholder: string }[] = [
@@ -86,6 +85,7 @@ const onSave = () => {
       (editablePipe.value as any)[field.id] = null;
     }
   }
+  editablePipe.value.corrosionLevel = corrosionLevel.value[0];
   emit('save', editablePipe.value);
 };
 
@@ -96,10 +96,6 @@ const onCancel = () => {
 
 <template>
   <Card class="w-full">
-    <CardHeader>
-      <CardTitle>{{ formTitle }}</CardTitle>
-      <CardDescription> Fill in the details below. All fields are optional. </CardDescription>
-    </CardHeader>
     <CardContent>
       <form @submit.prevent="onSave">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -119,9 +115,35 @@ const onCancel = () => {
               :id="field.id"
               :type="field.type"
               :placeholder="field.placeholder"
-              v-model="editablePipe[field.id]"
+              v-model="editablePipe[field.id] as string | number"
               class="mt-1"
             />
+          </div>
+        </div>
+
+        <div class="md:col-span-2 lg:col-span-3 mt-4">
+          <Label for="corrosionLevel">Corrosion Level ({{ corrosionLevel[0] }}%)</Label>
+          <Slider
+            id="corrosionLevel"
+            :default-value="[0]"
+            :max="100"
+            :step="1"
+            v-model="corrosionLevel"
+            class="mt-2"
+          />
+        </div>
+
+        <!-- Manufacturing & Specification Checkboxes -->
+        <div
+          class="md:col-span-2 lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 pt-4 mt-4"
+        >
+          <div class="flex items-center space-x-2">
+            <Checkbox id="isJacketed" v-model="editablePipe.isJacketed" />
+            <Label for="isJacketed">Is Jacketed?</Label>
+          </div>
+          <div class="flex items-center space-x-2">
+            <Checkbox id="isFlanged" v-model="editablePipe.isFlanged" />
+            <Label for="isFlanged">Is Flanged?</Label>
           </div>
         </div>
       </form>

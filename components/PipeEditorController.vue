@@ -147,8 +147,11 @@ onMounted(fetchPipes);
 
     <!-- Editor Dialog -->
     <Dialog :open="isEditorOpen" @update:open="isEditorOpen = $event">
-      <DialogContent class="max-w-4xl">
-        <DialogTitle>Pipe</DialogTitle>
+      <DialogContent class="max-w-7xl">
+        <DialogTitle>
+          <template v-if="selectedPipe?.id">Edit Pipe</template>
+          <template v-else>Create Pipe</template>
+        </DialogTitle>
         <!-- The PipeEditor component is rendered inside the dialog -->
         <PipeEditor :pipe="selectedPipe" @save="handleSave" @cancel="closeDialog" />
       </DialogContent>

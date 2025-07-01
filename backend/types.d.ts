@@ -27,4 +27,8 @@ export interface Pipe {
   coating?: string;
   /** The thickness of any applied insulation, in millimeters. */
   insulationThickness?: number;
+
+  corrosionLevel?: number;
+  isJacketed?: boolean;
+  isFlanged?: boolean;
 }

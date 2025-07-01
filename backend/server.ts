@@ -180,8 +180,8 @@ const server = http.createServer(async (req, res) => {
           // Create a new pipe object with the provided body and a new ID.
           // All fields are optional, so we don't need to check for them or provide defaults.
           const newPipe: Pipe = {
-            id: newId,
             ...body,
+            id: newId,
           };
 
           pipeCache.push(newPipe);
