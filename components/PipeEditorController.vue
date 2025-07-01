@@ -64,6 +64,13 @@ async function handleSave(pipeData: Pipe) {
   }
 }
 
+function handleNoChanges() {
+  closeDialog();
+  toast.message('No changes', {
+    description: `Pipe had no changes, and was not saved`,
+  });
+}
+
 // --- Dialog and UI Logic ---
 function openEditDialog(pipe: Pipe) {
   selectedPipe.value = pipe;
@@ -153,7 +160,12 @@ onMounted(fetchPipes);
           <template v-else>Create Pipe</template>
         </DialogTitle>
         <!-- The PipeEditor component is rendered inside the dialog -->
-        <PipeEditor :pipe="selectedPipe" @save="handleSave" @cancel="closeDialog" />
+        <PipeEditor
+          :pipe="selectedPipe"
+          @save="handleSave"
+          @cancel="closeDialog"
+          @no-changes="handleNoChanges"
+        />
       </DialogContent>
     </Dialog>
 

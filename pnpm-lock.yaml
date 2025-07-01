@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@gumnutdev/vue':
+        specifier: ^0.4.9
+        version: 0.4.9(vue@3.5.17(typescript@5.8.3))
       '@tailwindcss/vite':
         specifier: ^4.1.11
         version: 4.1.11(vite@7.0.0(@types/node@24.0.8)(jiti@2.4.2)(lightningcss@1.30.1))
@@ -245,6 +248,14 @@ packages:
 
   '@floating-ui/vue@1.1.7':
     resolution: {integrity: sha512-idmAtbAIigGXN2SI5gItiXYBYtNfDTP9yIiObxgu13dgtG7ARCHlNfnR29GxP4LI4o13oiwsJ8wVgghj1lNqcw==}
+
+  '@gumnutdev/api@0.4.7':
+    resolution: {integrity: sha512-4Gi2THlMsPntR8ZLpPnKf4yhqFBuj9y/TPOYS/85QAQD+2z0jKgw0sGrAr+ZMvSVD66LTf4yWUbJYnttLMSUTA==}
+
+  '@gumnutdev/vue@0.4.9':
+    resolution: {integrity: sha512-Zoa3d+y/t17Ikxb/Czt4jUyRBpL0YeLg2ek25m8OFVLgUxMe+eDdm9apeWRwMfknkm8xPQ/9mnigdTVHA1ta6w==}
+    peerDependencies:
+      vue: ^3.5.17
 
   '@internationalized/date@3.8.2':
     resolution: {integrity: sha512-/wENk7CbvLbkUvX1tu0mwq49CVkkWpkXubGel6birjRPyo6uQ4nQpnq5xZu823zRCwwn82zgHrvgF1vZyvmVgA==}
@@ -1038,6 +1049,13 @@ snapshots:
     transitivePeerDependencies:
       - '@vue/composition-api'
       - vue
+
+  '@gumnutdev/api@0.4.7': {}
+
+  '@gumnutdev/vue@0.4.9(vue@3.5.17(typescript@5.8.3))':
+    dependencies:
+      '@gumnutdev/api': 0.4.7
+      vue: 3.5.17(typescript@5.8.3)
 
   '@internationalized/date@3.8.2':
     dependencies:
