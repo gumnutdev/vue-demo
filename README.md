@@ -1,1 +1,1 @@
-This is a project.
+This is a Vue starting point for the Gumnut hackathon.
