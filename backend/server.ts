@@ -37,25 +37,7 @@ import http from 'http';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
-// --- TYPE DEFINITIONS ---
-
-interface Pipe {
-  id: number;
-  description?: string; // Free text description
-  diameter?: number; // in millimeters
-  material?: string; // e.g., 'Carbon Steel', 'PVC', 'Copper'
-  length?: number; // in meters
-  pressureRating?: number; // in PSI (Pounds per Square Inch)
-  schedule?: string; // e.g., 'SCH 40', 'SCH 80'
-  materialGrade?: string; // e.g., 'A106-B', '316L'
-  tensileStrength?: number; // in MPa (Megapascals)
-  yieldStrength?: number; // in MPa (Megapascals)
-  hardness?: string; // e.g., '150 HB' (Brinell Hardness)
-  ringCrushStrength?: number; // in kN/m (kilonewtons per meter)
-  coating?: string; // e.g., 'FBE' (Fusion Bonded Epoxy), 'Galvanized', 'None'
-  insulationThickness?: number; // in millimeters
-}
+import type { Pipe } from './types.js';
 
 // --- CONFIGURATION & SETUP ---
 

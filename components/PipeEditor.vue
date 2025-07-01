@@ -1,42 +1,3 @@
-<template>
-  <Card class="w-full">
-    <CardHeader>
-      <CardTitle>{{ formTitle }}</CardTitle>
-      <CardDescription> Fill in the details below. All fields are optional. </CardDescription>
-    </CardHeader>
-    <CardContent>
-      <form @submit.prevent="onSave">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div class="md:col-span-2 lg:col-span-3">
-            <Label for="description">Description</Label>
-            <Textarea
-              id="description"
-              v-model="editablePipe.description"
-              placeholder="Enter a description for the pipe..."
-              class="mt-1"
-            />
-          </div>
-
-          <div v-for="field in formFields" :key="field.id">
-            <Label :for="field.id">{{ field.label }}</Label>
-            <Input
-              :id="field.id"
-              :type="field.type"
-              :placeholder="field.placeholder"
-              v-model="editablePipe[field.id]"
-              class="mt-1"
-            />
-          </div>
-        </div>
-      </form>
-    </CardContent>
-    <CardFooter class="flex justify-end gap-2">
-      <Button variant="outline" @click="onCancel">Cancel</Button>
-      <Button @click="onSave">Save Pipe</Button>
-    </CardFooter>
-  </Card>
-</template>
-
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { Button } from '@/components/ui/button';
@@ -51,24 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-
-// Define the Pipe interface
-interface Pipe {
-  id?: number;
-  description?: string;
-  diameter?: number;
-  material?: string;
-  length?: number;
-  pressureRating?: number;
-  schedule?: string;
-  materialGrade?: string;
-  tensileStrength?: number;
-  yieldStrength?: number;
-  hardness?: string;
-  ringCrushStrength?: number;
-  coating?: string;
-  insulationThickness?: number;
-}
+import type { Pipe } from '../backend/types.d.ts';
 
 // Define props
 const props = defineProps<{
@@ -82,13 +26,13 @@ const emit = defineEmits<{
 }>();
 
 // Local state for the form
-const editablePipe = ref<Pipe>({});
+const editablePipe = ref<Pipe>({ id: 0 });
 
 // Watch for prop changes to update local state
 watch(
   () => props.pipe,
   (newPipe) => {
-    editablePipe.value = newPipe ? structuredClone(newPipe) : {};
+    editablePipe.value = newPipe ? { ...newPipe } : { id: 0 };
   },
   { immediate: true, deep: true },
 );
@@ -149,3 +93,42 @@ const onCancel = () => {
   emit('cancel');
 };
 </script>
+
+<template>
+  <Card class="w-full">
+    <CardHeader>
+      <CardTitle>{{ formTitle }}</CardTitle>
+      <CardDescription> Fill in the details below. All fields are optional. </CardDescription>
+    </CardHeader>
+    <CardContent>
+      <form @submit.prevent="onSave">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="md:col-span-2 lg:col-span-3">
+            <Label for="description">Description</Label>
+            <Textarea
+              id="description"
+              v-model="editablePipe.description"
+              placeholder="Enter a description for the pipe..."
+              class="mt-1"
+            />
+          </div>
+
+          <div v-for="field in formFields" :key="field.id">
+            <Label :for="field.id">{{ field.label }}</Label>
+            <Input
+              :id="field.id"
+              :type="field.type"
+              :placeholder="field.placeholder"
+              v-model="editablePipe[field.id]"
+              class="mt-1"
+            />
+          </div>
+        </div>
+      </form>
+    </CardContent>
+    <CardFooter class="flex justify-end gap-2">
+      <Button variant="outline" @click="onCancel">Cancel</Button>
+      <Button @click="onSave">Save Pipe</Button>
+    </CardFooter>
+  </Card>
+</template>

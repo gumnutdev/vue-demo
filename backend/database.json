@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "description": "Butt",
+    "diameter": 150,
+    "length": 10,
+    "material": "Rubber",
+    "insulationThickness": 1
+  },
+  {
+    "id": 0
+  },
+  {
+    "id": 0,
+    "description": "Empty Pipes"
+  },
+  {
+    "id": 0,
+    "description": "Empty Pipes",
+    "material": "Rubber"
+  }
+]

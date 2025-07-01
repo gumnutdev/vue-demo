@@ -1,3 +1,89 @@
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import { Plus, FilePenLine, Loader2 } from 'lucide-vue-next';
+import { toast } from 'vue-sonner';
+import type { Pipe } from '../backend/types.d.ts';
+import 'vue-sonner/style.css'; // vue-sonner v2 requires this import
+
+// Import shadcn-vue components
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Toaster as SonnerToaster } from '@/components/ui/sonner';
+
+// Import the editor component
+import PipeEditor from './PipeEditor.vue';
+
+// --- Component State ---
+const pipes = ref<Pipe[]>([]);
+const selectedPipe = ref<Pipe | null>(null);
+const isEditorOpen = ref(false);
+const loading = ref(false);
+const error = ref<string | null>(null);
+
+// --- API Communication ---
+async function fetchPipes() {
+  loading.value = true;
+  error.value = null;
+  try {
+    const response = await fetch('/pipes');
+    if (!response.ok) throw new Error(`Failed to fetch pipes: ${response.statusText}`);
+    pipes.value = await response.json();
+  } catch (e: any) {
+    error.value = e.message;
+    toast.error('Error fetching data', { description: e.message });
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function handleSave(pipeData: Pipe) {
+  try {
+    const response = await fetch('/pipes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(pipeData),
+    });
+    if (!response.ok) throw new Error(`Failed to save pipe: ${response.statusText}`);
+
+    toast.success('Success!', {
+      description: `Pipe ${pipeData.id ? 'updated' : 'created'} successfully.`,
+    });
+    closeDialog();
+    await fetchPipes(); // Refresh list
+  } catch (e: any) {
+    toast.error('Error saving data', { description: e.message });
+  }
+}
+
+// --- Dialog and UI Logic ---
+function openEditDialog(pipe: Pipe) {
+  selectedPipe.value = pipe;
+  isEditorOpen.value = true;
+}
+
+function openCreateDialog() {
+  selectedPipe.value = { id: 0 };
+  isEditorOpen.value = true;
+}
+
+function closeDialog() {
+  isEditorOpen.value = false;
+  selectedPipe.value = null;
+}
+
+// --- Lifecycle Hook ---
+onMounted(fetchPipes);
+</script>
+
 <template>
   <div class="p-4 md:p-8">
     <header class="flex items-center justify-between mb-8">
@@ -62,107 +148,13 @@
     <!-- Editor Dialog -->
     <Dialog :open="isEditorOpen" @update:open="isEditorOpen = $event">
       <DialogContent class="max-w-4xl">
+        <DialogTitle>Pipe</DialogTitle>
         <!-- The PipeEditor component is rendered inside the dialog -->
         <PipeEditor :pipe="selectedPipe" @save="handleSave" @cancel="closeDialog" />
       </DialogContent>
     </Dialog>
 
-    <!-- Toaster for notifications -->
-    <Toaster />
+    <!-- Sonner Toaster component from shadcn-vue -->
+    <SonnerToaster />
   </div>
 </template>
-
-<script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { Plus, FilePenLine, Loader2 } from 'lucide-vue-next';
-
-// Import shadcn-vue components
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Toaster } from '@/components/ui/toast';
-import { useToast } from '@/components/ui/toast/use-toast';
-
-// Import the editor component
-import PipeEditor from './PipeEditor.vue';
-
-// Define the Pipe interface
-interface Pipe {
-  id?: number;
-  description?: string;
-  diameter?: number;
-  material?: string;
-  // ... other properties
-}
-
-// --- Component State ---
-const pipes = ref<Pipe[]>([]);
-const selectedPipe = ref<Pipe | null>(null);
-const isEditorOpen = ref(false);
-const loading = ref(false);
-const error = ref<string | null>(null);
-const { toast } = useToast();
-
-// --- API Communication ---
-async function fetchPipes() {
-  loading.value = true;
-  error.value = null;
-  try {
-    const response = await fetch('/pipes');
-    if (!response.ok) throw new Error(`Failed to fetch pipes: ${response.statusText}`);
-    pipes.value = await response.json();
-  } catch (e: any) {
-    error.value = e.message;
-    toast({ title: 'Error', description: e.message, variant: 'destructive' });
-  } finally {
-    loading.value = false;
-  }
-}
-
-async function handleSave(pipeData: Pipe) {
-  try {
-    const response = await fetch('/pipes', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(pipeData),
-    });
-    if (!response.ok) throw new Error(`Failed to save pipe: ${response.statusText}`);
-
-    toast({
-      title: 'Success!',
-      description: `Pipe ${pipeData.id ? 'updated' : 'created'} successfully.`,
-    });
-    closeDialog();
-    await fetchPipes(); // Refresh list
-  } catch (e: any) {
-    toast({ title: 'Error', description: e.message, variant: 'destructive' });
-  }
-}
-
-// --- Dialog and UI Logic ---
-function openEditDialog(pipe: Pipe) {
-  selectedPipe.value = pipe;
-  isEditorOpen.value = true;
-}
-
-function openCreateDialog() {
-  selectedPipe.value = {};
-  isEditorOpen.value = true;
-}
-
-function closeDialog() {
-  isEditorOpen.value = false;
-  selectedPipe.value = null;
-}
-
-// --- Lifecycle Hook ---
-onMounted(fetchPipes);
-</script>
