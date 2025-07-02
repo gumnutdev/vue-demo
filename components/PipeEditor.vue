@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { onUnmounted, ref, watch } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -34,7 +34,18 @@ const emit = defineEmits<{
   (e: 'save', pipeData: Pipe): void;
   (e: 'no-changes'): void;
   (e: 'cancel'): void;
+  (e: 'agent-message', arg: { name: string; message: string }): void;
 }>();
+
+const c = new AbortController();
+onUnmounted(() => c.abort());
+doc.value.addListener(
+  'agentAction',
+  (m) => {
+    emit('agent-message', m);
+  },
+  c.signal,
+);
 
 // Local state for the form
 const editablePipe = ref<Pipe>({ id: 0 });
@@ -133,6 +144,15 @@ const onCancel = () => {
 <template>
   <Card class="w-full">
     <CardContent>
+      <Button
+        @click="
+          () => {
+            doc.triggerAgent('9gO8-RuGB_Fun_Hyw1Z85Q');
+          }
+        "
+        >Make values sane</Button
+      >
+
       <form @submit.prevent="onSave">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div class="md:col-span-2 lg:col-span-3">

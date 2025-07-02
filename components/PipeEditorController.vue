@@ -71,6 +71,10 @@ function handleNoChanges() {
   });
 }
 
+function handleAgentMessage(m: { name: string; message: string }) {
+  toast.message(`Agent: ${m.name}`, { description: m.message });
+}
+
 // --- Dialog and UI Logic ---
 function openEditDialog(pipe: Pipe) {
   selectedPipe.value = pipe;
@@ -165,6 +169,7 @@ onMounted(fetchPipes);
           @save="handleSave"
           @cancel="closeDialog"
           @no-changes="handleNoChanges"
+          @agent-message="handleAgentMessage"
         />
       </DialogContent>
     </Dialog>
